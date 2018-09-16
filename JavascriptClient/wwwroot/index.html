@@ -1,0 +1,84 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>serializeArray demo</title>
+    <style>
+        body, select {
+            font-size: 14px;
+        }
+
+        form {
+            margin: 5px;
+        }
+
+        p {
+            color: red;
+            margin: 5px;
+        }
+
+        b {
+            color: blue;
+        }
+    </style>
+    <script src="https://code.jquery.com/jquery-1.10.2.js"></script>
+</head>
+<body>
+    <p><b>Results:</b> <span id="results"></span></p>
+    <form>
+        <input type="text" name="name" />
+        <input type="text" name="email" />
+        <p>
+            <input type="submit" value="Send" />
+        </p>
+    </form>
+    <div id="postResult"></div>
+    <script>
+(function ($) {
+    $.fn.serializeFormJSON = function () {
+
+        var o = {};
+        var a = this.serializeArray();
+        $.each(a, function () {
+            if (o[this.name]) {
+                if (!o[this.name].push) {
+                    o[this.name] = [o[this.name]];
+                }
+                o[this.name].push(this.value || '');
+            } else {
+                o[this.name] = this.value || '';
+            }
+        });
+        return o;
+    };
+})(jQuery);
+
+$(document).ready(function(){
+    $.getJSON("https://localhost:5001/api/values/1", function(result){
+        $.each(result, function(i, field){
+            $("input[name="+i+"]").val(field);
+        });
+    });
+});
+$('form').submit(function (e) {
+    e.preventDefault();
+    var dataPost = $(this).serializeFormJSON();
+    //var data = {user_name:'jerry', password:'666666'};
+    //$.post('https://localhost:5001/api/values', data);});
+      $.ajax({
+        contentType: 'application/json',
+        type: "POST",
+        url: "https://localhost:5001/api/values",
+        data: JSON.stringify(dataPost),
+        success: function (data, textStatus, jqXHR) {
+            $("#postResult").val("Person created ok. Id=" + jqXHR.responseText);
+        },
+        error: function (jqXHR, textStatus, errorThrown) {
+            $("#postResult").val(jqXHR.statusText);
+        }
+    });
+});
+    </script>
+
+</body>
+</html>
